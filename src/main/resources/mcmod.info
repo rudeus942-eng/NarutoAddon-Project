@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "narutoaddon",
+    "name": "Lucks Naruto Addon",
+    "description": "Addon per la Naruto Mod.",
+    "version": "1.0.0",
+    "mcversion": "1.12.2",
+    "url": "",
+    "updateUrl": "",
+    "authorList": ["Luck"],
+    "credits": "Created by Luck, special thanks to the Narutomod community",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": ["narutomod"]
+  }
+]

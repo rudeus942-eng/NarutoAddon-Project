@@ -1,0 +1,19 @@
+# Creative Tab e Categoria
+itemGroup.luck_naruto_tab=Luck's Naruto Addon
+key.categories.narutoaddon=Luck's Naruto Addon
+key.narutoaddon.stats=Ninja Stats
+
+# Item Nomi Base
+item.shadow_release.name=Shadow Release
+item.purple_lightning.name=Purple Lightning
+
+# Jutsu Nomi (Devono coincidere con i nomi messi nel Java)
+entity.shadow_cloak.name=Shadow Cloak
+entity.shadow_spike.name=Shadow Spike
+entity.shadow_tendrils.name=Shadow Tendrils
+entity.shadow_gathering.name=Shadow Gathering
+entity.shadow_trap.name=Shadow Trap
+entity.purple_lightning_bolt.name=Purple Lightning Bolt
+entity.purple_lightning_stream.name=Purple Lightning Stream
+entity.purple_lightning_chain.name=Purple Lightning Chain
+entity.purple_infusion.name=Purple Infusion

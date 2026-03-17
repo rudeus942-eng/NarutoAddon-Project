@@ -1,0 +1,63 @@
+[01:42:49] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[01:42:49] [main/INFO] [LaunchWrapper]: Using primary tweak class name net.minecraftforge.fml.common.launcher.FMLTweaker
+[01:42:49] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLTweaker
+[01:42:49] [main/INFO] [FML]: Forge Mod Loader version 14.23.5.2855 for Minecraft 1.12.2 loading
+[01:42:49] [main/INFO] [FML]: Java is OpenJDK 64-Bit Server VM, version 1.8.0_482, running on Windows 11:amd64:10.0, installed at C:\Users\utente\.jdks\corretto-1.8.0_482\jre
+[01:42:49] [main/ERROR] [FML]: Apache Maven library folder was not in the format expected. Using default libraries directory.
+[01:42:49] [main/ERROR] [FML]: Full: C:\Users\utente\.gradle\caches\modules-2\files-2.1\org.apache.maven\maven-artifact\3.5.3\7dc72b6d6d8a6dced3d294ed54c2cc3515ade9f4\maven-artifact-3.5.3.jar
+[01:42:49] [main/ERROR] [FML]: Trimmed: c:/users/utente/.gradle/caches/modules-2/files-2.1/org.apache.maven/maven-artifact/3.5.3/
+[01:42:50] [main/INFO] [FML]: Managed to load a deobfuscated Minecraft name- we are in a deobfuscated environment. Skipping runtime deobfuscation
+[01:42:50] [main/INFO] [FML]: Detected deobfuscated environment, loading log configs for colored console logs.
+[01:42:50] [main/INFO] [FML]: Ignoring missing certificate for coremod FMLCorePlugin (net.minecraftforge.fml.relauncher.FMLCorePlugin), we are in deobf and it's a forge core plugin
+[01:42:50] [main/INFO] [FML]: Ignoring missing certificate for coremod FMLForgePlugin (net.minecraftforge.classloading.FMLForgePlugin), we are in deobf and it's a forge core plugin
+[01:42:50] [main/INFO] [FML]: Found a command line coremod : net.narutomod.NarutoModCore
+[01:42:50] [main/ERROR] [FML]: Coremod NarutoModCore: Unable to class load the plugin net.narutomod.NarutoModCore
+java.lang.ClassNotFoundException: net.narutomod.NarutoModCore
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:387) ~[?:1.8.0_482]
+	at net.minecraft.launchwrapper.LaunchClassLoader.findClass(LaunchClassLoader.java:117) ~[launchwrapper-1.12.jar:?]
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:418) ~[?:1.8.0_482]
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:351) ~[?:1.8.0_482]
+	at java.lang.Class.forName0(Native Method) ~[?:1.8.0_482]
+	at java.lang.Class.forName(Class.java:348) ~[?:1.8.0_482]
+	at net.minecraftforge.fml.relauncher.CoreModManager.loadCoreMod(CoreModManager.java:527) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraftforge.fml.relauncher.CoreModManager.handleLaunch(CoreModManager.java:263) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraftforge.fml.relauncher.FMLLaunchHandler.setupHome(FMLLaunchHandler.java:107) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraftforge.fml.relauncher.FMLLaunchHandler.setupClient(FMLLaunchHandler.java:81) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraftforge.fml.relauncher.FMLLaunchHandler.configureForClientLaunch(FMLLaunchHandler.java:42) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraftforge.fml.common.launcher.FMLTweaker.injectIntoClassLoader(FMLTweaker.java:141) [forge-1.12.2-14.23.5.2855_mapped_snapshot_20171003-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.launch(Launch.java:115) [launchwrapper-1.12.jar:?]
+	at net.minecraft.launchwrapper.Launch.main(Launch.java:28) [launchwrapper-1.12.jar:?]
+[01:42:50] [main/INFO] [FML]: Searching C:\Users\utente\Desktop\Luck's Naruto Addon\.\mods for mods
+[01:42:50] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:42:50] [main/INFO] [LaunchWrapper]: Loading tweak class name net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[01:42:50] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:42:50] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLInjectionAndSortingTweaker
+[01:42:50] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[01:42:54] [main/ERROR] [FML]: FML appears to be missing any signature data. This is not a good thing
+[01:42:54] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.relauncher.CoreModManager$FMLPluginWrapper
+[01:42:54] [main/INFO] [LaunchWrapper]: Calling tweak class net.minecraftforge.fml.common.launcher.FMLDeobfTweaker
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: java.lang.NoClassDefFoundError: net/minecraftforge/fml/common/ICrashCallable
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: 	at java.lang.Class.forName0(Native Method)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: 	at java.lang.Class.forName(Class.java:348)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: 	at net.minecraftforge.fml.common.launcher.FMLDeobfTweaker.injectIntoClassLoader(FMLDeobfTweaker.java:56)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: 	at net.minecraft.launchwrapper.Launch.launch(Launch.java:115)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1052]: 	at net.minecraft.launchwrapper.Launch.main(Launch.java:28)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1061]: Caused by: java.lang.ClassNotFoundException: net.minecraftforge.fml.common.ICrashCallable
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1061]: 	at net.minecraft.launchwrapper.LaunchClassLoader.findClass(LaunchClassLoader.java:191)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1061]: 	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1061]: 	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.ThreadGroup:uncaughtException:1061]: 	... 5 more
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: Caused by: java.lang.NoClassDefFoundError: net/minecraft/crash/ICrashReportDetail
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: 	at java.lang.ClassLoader.defineClass1(Native Method)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: 	at java.lang.ClassLoader.defineClass(ClassLoader.java:756)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: 	at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:142)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: 	at net.minecraft.launchwrapper.LaunchClassLoader.findClass(LaunchClassLoader.java:182)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:644]: 	... 7 more
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:668]: Caused by: java.lang.ClassNotFoundException: net.minecraft.crash.ICrashReportDetail
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:668]: 	at net.minecraft.launchwrapper.LaunchClassLoader.findClass(LaunchClassLoader.java:191)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:668]: 	at java.lang.ClassLoader.loadClass(ClassLoader.java:418)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:668]: 	at java.lang.ClassLoader.loadClass(ClassLoader.java:351)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printStackTrace:668]: 	... 11 more
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printEnclosedStackTrace:710]: Caused by: java.lang.NullPointerException
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printEnclosedStackTrace:710]: 	at net.minecraft.launchwrapper.LaunchClassLoader.findClass(LaunchClassLoader.java:182)
+[01:42:54] [main/INFO] [STDERR]: [java.lang.Throwable:printEnclosedStackTrace:710]: 	... 13 more
