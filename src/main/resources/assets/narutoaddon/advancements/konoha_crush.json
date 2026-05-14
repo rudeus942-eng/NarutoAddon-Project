@@ -1,0 +1,18 @@
+{
+  "parent": "luckAddon:becomegenin",
+  "display": {
+    "icon": {
+      "item": "minecraft:nether_star"
+    },
+    "title": "Konoha Crush",
+    "description": "Completed the Konoha Crush arc. Clan crates are now available in the shop.",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

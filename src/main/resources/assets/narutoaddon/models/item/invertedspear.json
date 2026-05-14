@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/invertedspearofheaven",
+  "textures": {
+    "0": "luckAddon:blocks/invertedspear"
+  }
+}

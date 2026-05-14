@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/scythe",
+  "textures": {
+    "1": "luckAddon:blocks/scythe"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/hidanscythe",
+  "textures": {
+    "0": "luckAddon:blocks/hidanscythe"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/sealingscroll",
+  "textures": {
+    "0": "luckAddon:blocks/scroll_lavadefense"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/giantfumashuriken",
+  "textures": {
+    "0": "luckAddon:blocks/fumashuriken"
+  }
+}

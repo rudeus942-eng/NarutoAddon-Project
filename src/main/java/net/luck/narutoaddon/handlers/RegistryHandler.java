@@ -3,7 +3,6 @@ package net.luck.narutoaddon.handlers;
 import net.luck.narutoaddon.Items.ItemPurpleLightning;
 import net.luck.narutoaddon.Items.ShadowKg.ItemShadowRelease;
 import net.luck.narutoaddon.entity.EntityShadowKunai;
-import net.luck.narutoaddon.entity.EntityShadowSpike;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
@@ -41,12 +40,6 @@ public class RegistryHandler {
 
     @SubscribeEvent
     public static void onEntityRegister(RegistryEvent.Register<EntityEntry> event) {
-        EntityEntry shadowSpike = EntityEntryBuilder.create()
-                .entity(EntityShadowSpike.class)
-                .name("shadow_spike")
-                .id(new ResourceLocation("narutoaddon", "shadow_spike"), entityId++)
-                .tracker(64, 20, true)
-                .build();
 
         EntityEntry shadowKunai = EntityEntryBuilder.create()
                 .entity(EntityShadowKunai.class)
@@ -55,7 +48,7 @@ public class RegistryHandler {
                 .tracker(64, 20, true)
                 .build();
 
-        event.getRegistry().registerAll(shadowSpike, shadowKunai);
+        event.getRegistry().registerAll( shadowKunai);
     }
 
     @SideOnly(Side.CLIENT)
@@ -79,12 +72,5 @@ public class RegistryHandler {
                 manager -> new net.luck.narutoaddon.client.renderer.RenderShadowKunai(manager)
         );
 
-        // Se hai un renderer per lo spike, aggiungilo qui con lo stesso stile:
-        /*
-        net.minecraftforge.fml.client.registry.RenderingRegistry.registerEntityRenderingHandler(
-                net.luck.narutoaddon.entity.EntityShadowSpike.class,
-                manager -> new net.luck.narutoaddon.client.renderer.RenderShadowSpike(manager)
-        );
-        */
     }
 }

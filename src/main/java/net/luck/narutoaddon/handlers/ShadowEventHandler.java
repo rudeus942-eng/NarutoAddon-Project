@@ -1,7 +1,6 @@
 package net.luck.narutoaddon.handlers;
 
 import net.luck.narutoaddon.entity.EntityShadowKunai;
-import net.luck.narutoaddon.entity.EntityShadowSpike;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumParticleTypes;
@@ -23,7 +22,6 @@ public class ShadowEventHandler {
 
     // Metodo Helper per ottenere i dati NBT in modo sicuro su Forge 1.12.2
     private static NBTTagCompound getSafeData(EntityLivingBase entity) {
-        // Questo evita il NoSuchMethodError di getEntityData()
         return entity.writeToNBT(new NBTTagCompound()).getCompoundTag("ForgeData");
     }
 
@@ -43,14 +41,14 @@ public class ShadowEventHandler {
         NBTTagCompound data = getSafeData(entity);
         long currentTime = world.getTotalWorldTime();
 
-        // 1. PARTICELLE CLOAK
+        // 1. PARTICELLE CLOAK (Effetto Visivo Armatura d'Ombra)
         if (data.getBoolean("ShadowCloakActive")) {
             if (world instanceof WorldServer && currentTime % 2 == 0) {
                 spawnBlackParticle(world, entity.posX + (world.rand.nextDouble()-0.5)*0.7, entity.posY + world.rand.nextDouble()*2, entity.posZ + (world.rand.nextDouble()-0.5)*0.7);
             }
         }
 
-        // 2. LOGICA FREEZE TOTALE
+        // 2. LOGICA FREEZE TOTALE (Immobilizzazione Jutsu)
         if (data.hasKey("ShadowFrozenUntil") && data.getLong("ShadowFrozenUntil") > currentTime) {
             entity.setPositionAndUpdate(data.getDouble("FreezeX"), data.getDouble("FreezeY"), data.getDouble("FreezeZ"));
             entity.rotationYaw = data.getFloat("FreezeYaw");
@@ -62,17 +60,15 @@ public class ShadowEventHandler {
             if (world instanceof WorldServer) renderHardFreezeVisuals((WorldServer) world, entity);
         }
 
-        // 3. GATHERING LOGIC
+        // 3. GATHERING LOGIC (Attrazione verso un punto)
         if (data.getBoolean("ShadowGatheringActive")) {
             handleGatheringLogic(world, entity, data, currentTime);
         }
 
-        // 4. TRAP LOGIC
+        // 4. TRAP LOGIC (Attivazione Trappola Kunai)
         if (data.hasKey("TrapPosX")) {
             handleTrapLogic(world, entity, data);
         }
-
-        checkSpikeCollisions(world, entity, currentTime);
 
         // Salviamo i dati alla fine dell'update
         saveSafeData(entity, data);
@@ -152,25 +148,6 @@ public class ShadowEventHandler {
                     data.removeTag("TrapPosX"); data.removeTag("TrapPosY"); data.removeTag("TrapPosZ");
                     break;
                 }
-            }
-        }
-    }
-
-    private static void checkSpikeCollisions(World world, EntityLivingBase e, long time) {
-        for (EntityShadowSpike s : world.getEntitiesWithinAABB(EntityShadowSpike.class, e.getEntityBoundingBox().grow(0.1))) {
-            NBTTagCompound tData = getSafeData(e);
-            NBTTagCompound sData = s.writeToNBT(new NBTTagCompound()).getCompoundTag("ForgeData");
-
-            if (sData.getBoolean("IsConjureSpike")) {
-                tData.setDouble("FreezeX", e.posX);
-                tData.setDouble("FreezeY", e.posY);
-                tData.setDouble("FreezeZ", e.posZ);
-                tData.setFloat("FreezeYaw", e.rotationYaw);
-                tData.setFloat("FreezePitch", e.rotationPitch);
-                tData.setLong("ShadowFrozenUntil", time + 60);
-                saveSafeData(e, tData);
-            } else if (sData.getBoolean("IsDamageSpike")) {
-                e.attackEntityFrom(net.minecraft.util.DamageSource.CACTUS, 4.0F);
             }
         }
     }

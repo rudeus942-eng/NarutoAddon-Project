@@ -2,11 +2,11 @@ package net.luck.narutoaddon.client.renderer;
 
 import net.luck.narutoaddon.client.model.ModelShadowKunai;
 import net.luck.narutoaddon.entity.EntityShadowKunai;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.client.model.ModelBase;
 
 public class RenderShadowKunai extends Render<EntityShadowKunai> {
 

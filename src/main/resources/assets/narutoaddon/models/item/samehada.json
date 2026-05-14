@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/samehada",
+  "textures": {
+    "1": "narutomod:blocks/samehada"
+  }
+}

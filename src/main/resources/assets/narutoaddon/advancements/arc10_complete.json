@@ -1,0 +1,18 @@
+{
+  "parent": "luckAddon:becomegenin",
+  "display": {
+    "icon": {
+      "item": "minecraft:nether_star"
+    },
+    "title": "Three-Tails Appears - Complete",
+    "description": "Completed Arc 10: Three-Tails Appears. Guren found redemption, Yukimaru found a home, and the beast retreated to the depths.",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

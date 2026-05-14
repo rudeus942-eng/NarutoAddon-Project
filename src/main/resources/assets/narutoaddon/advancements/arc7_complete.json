@@ -1,0 +1,18 @@
+{
+  "parent": "luckAddon:becomegenin",
+  "display": {
+    "icon": {
+      "item": "minecraft:nether_star"
+    },
+    "title": "Kazekage Rescue - Complete",
+    "description": "Completed Arc 7: The Kazekage Rescue Mission. Gaara has been saved, and the bond between villages grows stronger.",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

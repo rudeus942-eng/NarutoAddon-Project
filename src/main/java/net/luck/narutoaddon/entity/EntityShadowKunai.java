@@ -64,7 +64,7 @@ public class EntityShadowKunai extends Entity {
 
                     // CHIAMATA RIPRISTINATA: 4 Argomenti (caster, target, durata, isTendrils)
                     // Usiamo il caster (se trovato) o il target stesso come fallback per evitare null
-                    ItemShadowRelease.applyHardFreeze(caster, target, 140, false);
+                    ItemShadowRelease.applyHardFreeze(caster, target, 140);
                     // Il Kunai scompare dopo aver attivato la trappola
                     this.setDead();
                     break;

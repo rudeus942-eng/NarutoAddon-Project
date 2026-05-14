@@ -1,0 +1,6 @@
+{
+  "parent": "luckAddon:custom/swordkatana",
+  "textures": {
+    "1": "luckAddon:blocks/anbukatana"
+  }
+}
