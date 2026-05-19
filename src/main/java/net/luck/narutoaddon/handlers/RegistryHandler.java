@@ -25,6 +25,12 @@ public class RegistryHandler {
 
     public static void init() {
         if (ITEMS.isEmpty()) {
+            PURPLE_LIGHTNING.setRegistryName(new ResourceLocation("narutoaddon", "purple_lightning"));
+            PURPLE_LIGHTNING.setUnlocalizedName("purple_lightning");
+
+            SHADOW_RELEASE.setRegistryName(new ResourceLocation("narutoaddon", "shadow_release"));
+            SHADOW_RELEASE.setUnlocalizedName("shadow_release");
+
             ITEMS.add(PURPLE_LIGHTNING);
             ITEMS.add(SHADOW_RELEASE);
         }

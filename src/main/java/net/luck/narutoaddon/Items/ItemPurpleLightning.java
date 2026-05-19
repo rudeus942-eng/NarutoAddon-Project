@@ -30,7 +30,7 @@ public class ItemPurpleLightning extends ItemJutsu.Base {
 
     public ItemPurpleLightning() {
         super(ItemJutsu.JutsuEnum.Type.RAITON, SHIDEN, NAGASHI);
-        this.setTranslationKey("purple_lightning");
+        this.setUnlocalizedName("purple_lightning");
         this.setRegistryName("purple_lightning");
         this.setCreativeTab(LuckTabs.LUCK_TAB);
     }

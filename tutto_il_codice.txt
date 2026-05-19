@@ -1,0 +1,2139 @@
+=========================================
+FILE: LuckTabs.java
+=========================================
+package net.luck.narutoaddon;
+
+import net.luck.narutoaddon.Items.ShadowKg.ItemShadowRelease;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+public class LuckTabs {
+
+    public static final CreativeTabs LUCK_TAB = new CreativeTabs("luck_tab") {
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public ItemStack getIconItemStack() {
+            net.minecraft.item.Item mioItem = ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("narutoaddon", "shadow_release"));
+            if (mioItem != null) {
+                return new ItemStack(mioItem);
+            }
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public ItemStack getTabIconItem() {
+            net.minecraft.item.Item mioItem = ForgeRegistries.ITEMS.getValue(new net.minecraft.util.ResourceLocation("narutoaddon", "shadow_release"));
+
+            if (mioItem != null) {
+                return new ItemStack(mioItem);
+            }
+            return ItemStack.EMPTY;
+        }
+    };
+}
+
+
+
+=========================================
+FILE: NarutoAddon.java
+=========================================
+package net.luck.narutoaddon;
+
+//import net.luck.narutoaddon.OtherCode.luckAddonAddon;
+import net.luck.narutoaddon.StatMenu.INinjaStats;
+import net.luck.narutoaddon.StatMenu.NinjaStats;
+import net.luck.narutoaddon.StatMenu.NinjaStatsStorage;
+import net.luck.narutoaddon.network.PacketHandler;
+import net.luck.narutoaddon.proxy.CommonProxy;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+
+@Mod(modid = "narutoaddon", name = "Lucks Naruto Addon", version = "1.0"/*, dependencies = "required-after:narutomod"*/)
+public class NarutoAddon {
+    public static final String MODID = "narutoaddon";
+
+    @Mod.Instance
+    public static NarutoAddon instance;
+
+    @SidedProxy(
+            clientSide = "net.luck.narutoaddon.proxy.ClientProxy",
+            serverSide = "net.luck.narutoaddon.proxy.ServerProxy"
+    )
+    public static CommonProxy proxy;
+    //public static luckAddonAddon luckElements;
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+
+        //luckElements = new luckAddonAddon();
+
+        CapabilityManager.INSTANCE.register(
+                INinjaStats.class,
+                new NinjaStatsStorage(),
+                NinjaStats.class
+        );
+
+        //MinecraftForge.EVENT_BUS.register(luckElements);
+
+        //luckElements.preInit(event);
+
+        proxy.preInit();
+    }
+
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        // --- 2. REGISTRAZIONE EVENTI STATISTICHE ---
+        MinecraftForge.EVENT_BUS.register(new net.luck.narutoaddon.StatMenu.StatEvents());
+        //luckElements.init(event);
+
+        proxy.init();
+    }
+
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        proxy.postInit();
+        System.out.println("NARUTO ADDON: Caricamento completato con successo!");
+    }
+}
+
+
+
+=========================================
+FILE: KeyHandler.java
+=========================================
+package net.luck.narutoaddon.client;
+
+import net.luck.narutoaddon.client.gui.GuiStatMenu;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
+
+@SideOnly(Side.CLIENT)
+@Mod.EventBusSubscriber(modid = "narutoaddon", value = Side.CLIENT)
+public class KeyHandler {
+
+    // Non inizializzarlo qui con = new KeyBinding(...)!
+    public static KeyBinding OPEN_MENU;
+
+    public static void registerKeys() {
+        // Inizializzalo solo quando viene chiamato esplicitamente nel ClientProxy o nel Main
+        OPEN_MENU = new KeyBinding("key.narutoaddon.open_menu", Keyboard.KEY_N, "key.categories.narutoaddon");
+        ClientRegistry.registerKeyBinding(OPEN_MENU);
+    }
+
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.KeyInputEvent event) {
+        // Aggiungiamo un controllo di sicurezza per evitare NullPointerException
+        if (OPEN_MENU != null && OPEN_MENU.isPressed()) {
+            Minecraft mc = Minecraft.getMinecraft();
+
+            // Apriamo la GUI solo se non ce n'è già una aperta
+            if (mc.currentScreen == null) {
+                mc.displayGuiScreen(new GuiStatMenu());
+            }
+        }
+    }
+}
+
+
+
+=========================================
+FILE: GuiButtonColor.java
+=========================================
+package net.luck.narutoaddon.client.gui;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
+
+public class GuiButtonColor extends GuiButton {
+    private final int buttonColor;
+
+    public GuiButtonColor(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText, int color) {
+        super(buttonId, x, y, widthIn, heightIn, buttonText);
+        this.buttonColor = color;
+    }
+
+    @Override
+    public void drawButton(Minecraft mc, int mouseX, int mouseY, float partialTicks) {
+        if (this.visible) {
+            // Controlla se il mouse è sopra il bottone
+            this.hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
+
+            // Disegna il rettangolo colorato (leggermente più chiaro se hoverato)
+            int renderColor = this.hovered ? (buttonColor | 0x44444444) : buttonColor;
+
+            // Sfondo nero per il bordo e poi il colore scelto
+            drawRect(this.x, this.y, this.x + this.width, this.y + this.height, 0xFF000000);
+            drawRect(this.x + 1, this.y + 1, this.x + this.width - 1, this.y + this.height - 1, renderColor);
+
+            this.drawCenteredString(mc.fontRenderer, this.displayString, this.x + this.width / 2, this.y + (this.height - 8) / 2, 14737632);
+        }
+    }
+}
+
+
+
+=========================================
+FILE: GuiStatMenu.java
+=========================================
+package net.luck.narutoaddon.client.gui;
+
+
+//import net.luck.narutoaddon.OtherCode.gui.*;
+//import net.luck.narutoaddon.OtherCode.jutsu.EntityShrineHeianEraTransformation;
+import net.luck.narutoaddon.StatMenu.NinjaStatsUtils;
+import net.luck.narutoaddon.StatMenu.NinjaStatsUtils.NinjaData;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.init.SoundEvents;
+
+import java.io.IOException;
+
+public class GuiStatMenu extends GuiScreen {
+
+    private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("narutoaddon", "textures/menu/menu_bg.png");
+    private static final ResourceLocation SECONDARY_TEXTURE = new ResourceLocation("narutoaddon", "textures/menu/kagecraft_ui_32bit.png");
+
+    private int currentTab = -1;
+    private final int xSize = 400;
+    private final int ySize = 230;
+
+    @Override
+    public void initGui() {
+        this.buttonList.clear();
+        int guiLeft = (this.width - xSize) / 2;
+        int guiTop = (this.height - ySize) / 2;
+
+        this.buttonList.add(new GuiInvisibleButton(10, guiLeft + 6, guiTop + 4, 55, 18));
+
+        int btnW = 122;
+        int btnH = 58;
+        int gapX = 130;
+        int gapY = 62;
+        int startX = guiLeft + 8;
+        int startY = guiTop + 28;
+
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                int id = col + (row * 3);
+                this.buttonList.add(new GuiInvisibleButton(id, startX + (col * gapX), startY + (row * gapY), btnW, btnH));
+            }
+        }
+    }
+
+    /*@Override
+    protected void actionPerformed(GuiButton button) throws IOException {
+        if (button.id == 10) {
+            currentTab = (currentTab != -1) ? -1 : 10;
+        }
+        else if (currentTab == -1) {
+            switch (button.id) {
+                case 0: this.mc.displayGuiScreen(new GuiRankedMenu()); break;
+                case 1: this.mc.displayGuiScreen(new GuiRankedLeaderboard()); break;
+                case 2: this.mc.displayGuiScreen(new GuiRankedStats()); break;
+                case 3: this.mc.displayGuiScreen(new GuiRankedTitles()); break;
+                //case 4: this.activateSukuna(); break; // Ora Sukuna è collegato al tasto ID 4
+                default: this.currentTab = button.id; break;
+            }
+        }
+        this.mc.player.playSound(SoundEvents.UI_BUTTON_CLICK, 1.0F, 1.0F);
+    }*/
+
+    /*public void activateSukuna() {
+        if (EntityShrineHeianEraTransformation.isActive(this.mc.player)) {
+            luckAddonAddon.PACKET_HANDLER.sendToServer(new EntityShrineHeianEraTransformation.DeactivateMessage());
+        } else {
+            luckAddonAddon.PACKET_HANDLER.sendToServer(new EntityShrineHeianEraTransformation.ActivateMessage());
+        }
+        this.mc.displayGuiScreen(null); // Chiude la GUI per vedere l'effetto
+    }
+     */
+
+    //public void openSeasonMenu() { this.mc.displayGuiScreen(new GuiRankedSeason()); }
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        this.drawDefaultBackground();
+        int guiLeft = (this.width - xSize) / 2;
+        int guiTop = (this.height - ySize) / 2;
+
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+
+        this.mc.getTextureManager().bindTexture(BACKGROUND_TEXTURE);
+        drawFullImageStretch(guiLeft, guiTop, xSize, ySize);
+
+        if (currentTab == -1) {
+            this.fontRenderer.drawStringWithShadow("RANKED MENU", guiLeft + 35, guiTop + 55, 0xFFFFFF);
+            this.fontRenderer.drawStringWithShadow("LEADERBOARD", guiLeft + 165, guiTop + 55, 0xFFFFFF);
+            this.fontRenderer.drawStringWithShadow("MY RANKED", guiLeft + 300, guiTop + 55, 0xFFFFFF);
+            this.fontRenderer.drawStringWithShadow("TITLES", guiLeft + 50, guiTop + 115, 0xFFFFFF);
+            this.fontRenderer.drawStringWithShadow("SUKUNA MODE", guiLeft + 170, guiTop + 115, 0xFFFFFF); // Etichetta Sukuna
+        }
+
+        for (GuiButton button : this.buttonList) {
+            button.visible = (button.id == 10 || currentTab == -1);
+        }
+
+        if (currentTab == 10) {
+            this.mc.getTextureManager().bindTexture(SECONDARY_TEXTURE);
+            drawFullImageStretch(guiLeft, guiTop, xSize, ySize);
+            renderStatsContent(guiLeft, guiTop);
+        }
+
+        super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    private void renderStatsContent(int x, int y) {
+        NinjaData data = NinjaStatsUtils.scanPlayer(this.mc.player);
+        int gray = 0xAAAAAA;
+        int white = 0xFFFFFF;
+        int gold = 0xFFD400;
+
+        int currentYLeft = y + 35;
+        int col1 = x + 25;
+
+        currentYLeft = drawDynamicSection("Releases", data.relText, col1, currentYLeft, gray, white);
+        currentYLeft += 6;
+        currentYLeft = drawDynamicSection("Kekkei", data.kekText, col1, currentYLeft, gray, white);
+        currentYLeft += 6;
+        currentYLeft = drawDynamicSection("Dojutsu", data.dojText, col1, currentYLeft, gray, white);
+
+        int col2 = x + 215;
+        int currentYRight = y + 35;
+        int spacing = 15;
+
+        this.fontRenderer.drawStringWithShadow("Strength: ", col2, currentYRight, gray);
+        this.fontRenderer.drawString(String.valueOf(data.totalStr), col2 + 70, currentYRight, 0xFF5555);
+        currentYRight += spacing;
+        this.fontRenderer.drawStringWithShadow("Agility: ", col2, currentYRight, gray);
+        this.fontRenderer.drawString(String.valueOf(data.totalAgi), col2 + 70, currentYRight, 0x55FF55);
+        currentYRight += spacing;
+        this.fontRenderer.drawStringWithShadow("Taijutsu: ", col2, currentYRight, gray);
+        this.fontRenderer.drawString(data.taiMode, col2 + 70, currentYRight, white);
+        currentYRight += spacing;
+        this.fontRenderer.drawStringWithShadow("Senjutsu: ", col2, currentYRight, gray);
+        this.fontRenderer.drawString(data.senMode, col2 + 70, currentYRight, 0x55FF55);
+        currentYRight += spacing;
+        this.fontRenderer.drawStringWithShadow("Vitals: ", col2, currentYRight, gray);
+        this.fontRenderer.drawString((int)data.hp + " / " + (int)data.maxHp, col2 + 70, currentYRight, 0xFF5555);
+        currentYRight += spacing;
+
+        int finalY = Math.max(currentYLeft, currentYRight) + 10;
+        drawRect(x + 20, finalY, x + xSize - 20, finalY + 1, 0x33FFFFFF);
+
+        int statusY = finalY + 10;
+        this.fontRenderer.drawStringWithShadow("Medical: ", x + 25, statusY, gray);
+        this.fontRenderer.drawString(data.medicalState, x + 85, statusY, 0x55FFFF);
+        this.fontRenderer.drawStringWithShadow("Six Paths: ", x + 150, statusY, gray);
+        this.fontRenderer.drawString(data.sixPathsState, x + 210, statusY, gold);
+        this.fontRenderer.drawStringWithShadow("Summon: ", x + 275, statusY, gray);
+        this.fontRenderer.drawString(data.sumMode, x + 330, statusY, white);
+    }
+
+    private int drawDynamicSection(String label, String content, int x, int y, int labelColor, int contentColor) {
+        this.fontRenderer.drawStringWithShadow(label + ":", x, y, labelColor);
+        String[] parts = content.split(", ");
+        int currentX = x + 15;
+        int currentY = y + 10;
+        for (int i = 0; i < parts.length; i++) {
+            String element = parts[i] + (i < parts.length - 1 ? ", " : "");
+            if (currentX + this.fontRenderer.getStringWidth(element) > (x + 180)) {
+                currentX = x + 15;
+                currentY += 10;
+            }
+            this.fontRenderer.drawString(element, currentX, currentY, contentColor);
+            currentX += this.fontRenderer.getStringWidth(element);
+        }
+        return currentY + 12;
+    }
+
+    public void drawFullImageStretch(int x, int y, int width, int height) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.getBuffer();
+        bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
+        bufferbuilder.pos((double)x, (double)(y + height), (double)this.zLevel).tex(0.0D, 1.0D).endVertex();
+        bufferbuilder.pos((double)(x + width), (double)(y + height), (double)this.zLevel).tex(1.0D, 1.0D).endVertex();
+        bufferbuilder.pos((double)(x + width), (double)y, (double)this.zLevel).tex(1.0D, 0.0D).endVertex();
+        bufferbuilder.pos((double)x, (double)y, (double)this.zLevel).tex(0.0D, 0.0D).endVertex();
+        tessellator.draw();
+    }
+
+    @Override
+    public boolean doesGuiPauseGame() { return false; }
+
+    private static class GuiInvisibleButton extends GuiButton {
+        public GuiInvisibleButton(int id, int x, int y, int w, int h) { super(id, x, y, w, h, ""); }
+        @Override
+        public void drawButton(net.minecraft.client.Minecraft mc, int mouseX, int mouseY, float partialTicks) {}
+    }
+}
+
+
+
+=========================================
+FILE: ModelShadowKunai.java
+=========================================
+package net.luck.narutoaddon.client.model;
+
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.entity.Entity;
+
+public class ModelShadowKunai extends ModelBase {
+    public ModelRenderer handle;
+    public ModelRenderer blade;
+    public ModelRenderer ring;
+
+    public ModelShadowKunai() {
+        this.textureWidth = 32;
+        this.textureHeight = 32;
+
+        // Impugnatura (Handle)
+        this.handle = new ModelRenderer(this, 0, 0);
+        this.handle.addBox(-0.5F, -4.0F, -0.5F, 1, 4, 1);
+        this.handle.setRotationPoint(0.0F, 0.0F, 0.0F);
+
+        // Lama (Blade)
+        this.blade = new ModelRenderer(this, 4, 0);
+        this.blade.addBox(-1.5F, -10.0F, -0.5F, 3, 6, 1);
+        this.blade.setRotationPoint(0.0F, 0.0F, 0.0F);
+
+        // Anello (Ring)
+        this.ring = new ModelRenderer(this, 12, 0);
+        this.ring.addBox(-1.0F, 0.0F, -0.5F, 2, 2, 1);
+        this.ring.setRotationPoint(0.0F, 0.0F, 0.0F);
+    }
+
+    @Override
+    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+        this.handle.render(f5);
+        this.blade.render(f5);
+        this.ring.render(f5);
+    }
+}
+
+
+
+=========================================
+FILE: LayerShadowCloak.java
+=========================================
+package net.luck.narutoaddon.client.renderer;
+
+import net.minecraft.client.model.ModelPlayer;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.renderer.entity.layers.LayerRenderer;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+@SideOnly(Side.CLIENT)
+public class LayerShadowCloak implements LayerRenderer<EntityPlayer> {
+    private final RenderPlayer renderPlayer;
+
+    public LayerShadowCloak(RenderPlayer renderPlayer) {
+        this.renderPlayer = renderPlayer;
+    }
+
+    @Override
+    public void doRenderLayer(EntityPlayer player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {
+
+        if (player == null || player.isDead || player.isInvisible()) return;
+
+        // Attivazione basata sugli effetti del jutsu (Segnale per il mantello d'ombra)
+        if (!player.isPotionActive(MobEffects.SPEED) || !player.isPotionActive(MobEffects.RESISTANCE)) return;
+
+        ModelPlayer model = this.renderPlayer.getMainModel();
+        if (model == null) return;
+
+        try {
+            GlStateManager.pushMatrix();
+
+            // Setup Rendering Ombra (Trasparente)
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GlStateManager.disableLighting();
+            GlStateManager.disableTexture2D();
+
+            // Nero al 70% di opacità
+            GlStateManager.color(0.0F, 0.0F, 0.0F, 0.7F);
+
+            // Prevenzione Z-Fighting (Sfarfallio tra la pelle e l'ombra)
+            GlStateManager.enablePolygonOffset();
+            GlStateManager.doPolygonOffset(-1.0F, -10.0F);
+
+            // Scala leggermente maggiorata per "avvolgere" il corpo del player
+            float s = 1.04F;
+            GlStateManager.scale(s, s, s);
+
+            // --- CONFIGURAZIONE MANUALE DEL MODELLO ---
+            model.swingProgress = player.getSwingProgress(partialTicks);
+            model.isRiding = player.isRiding();
+            model.isChild = player.isChild();
+
+            // Applichiamo le rotazioni standard per far muovere il mantello con il giocatore
+            model.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scale, player);
+
+            // --- RENDERING SICURO (NULL-CHECK) ---
+            // Renderizziamo ogni parte solo se esiste per evitare NullPointerException
+            if (model.bipedHead != null) model.bipedHead.render(scale);
+            if (model.bipedBody != null) model.bipedBody.render(scale);
+            if (model.bipedRightArm != null) model.bipedRightArm.render(scale);
+            if (model.bipedLeftArm != null) model.bipedLeftArm.render(scale);
+            if (model.bipedRightLeg != null) model.bipedRightLeg.render(scale);
+            if (model.bipedLeftLeg != null) model.bipedLeftLeg.render(scale);
+            if (model.bipedHeadwear != null) model.bipedHeadwear.render(scale);
+
+            // Pulizia degli stati grafici per non rompere il resto del gioco
+            GlStateManager.disablePolygonOffset();
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableLighting();
+            GlStateManager.disableBlend();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
+            GlStateManager.popMatrix();
+
+        } catch (Exception e) {
+            // Se qualcosa fallisce nonostante i controlli, chiudiamo la matrice per evitare errori a cascata
+            GlStateManager.popMatrix();
+        }
+    }
+
+    @Override
+    public boolean shouldCombineTextures() {
+        return false;
+    }
+}
+
+
+
+=========================================
+FILE: RenderShadowKunai.java
+=========================================
+package net.luck.narutoaddon.client.renderer;
+
+import net.luck.narutoaddon.client.model.ModelShadowKunai;
+import net.luck.narutoaddon.entity.EntityShadowKunai;
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.util.ResourceLocation;
+
+public class RenderShadowKunai extends Render<EntityShadowKunai> {
+
+    // Cambia qui il percorso della texture se vuoi usare quella originale della mod
+    private static final ResourceLocation TEXTURE = new ResourceLocation("narutomod", "textures/entity/kunai.png");
+
+    protected ModelBase mainModel = new ModelShadowKunai();
+
+    public RenderShadowKunai(RenderManager renderManager) {
+        super(renderManager);
+    }
+
+    @Override
+    public void doRender(EntityShadowKunai entity, double x, double y, double z, float entityYaw, float partialTicks) {
+        GlStateManager.pushMatrix();
+
+        // 1. Posizionamento (Alzato leggermente per far vedere bene la lama)
+        GlStateManager.translate(x, y + 0.37D, z);
+
+        // 2. Colore Nero Ombra
+        GlStateManager.color(0.0F, 0.0F, 0.0F, 1.0F);
+
+        // 3. ROTAZIONE
+        // Mantiene la rotazione del giocatore/entità sul suo asse
+        GlStateManager.rotate(entity.rotationYaw, 0.0F, 1.0F, 0.0F);
+        // Inclinazione di 65 gradi (Invece di -90 che lo rendeva perfettamente verticale)
+        // Usiamo un valore negativo o positivo a seconda di come è costruito il tuo modello
+        GlStateManager.rotate(-45.0F, 1.0F, 0.0F, 0.0F);
+
+        // 4. Scala
+        GlStateManager.scale(1.0F, 1.0F, 1.0F);
+
+        this.bindEntityTexture(entity);
+
+        // 5. Rendering del modello
+        this.mainModel.render(entity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F);
+
+        GlStateManager.popMatrix();
+        super.doRender(entity, x, y, z, entityYaw, partialTicks);
+    }
+
+    @Override
+    protected ResourceLocation getEntityTexture(EntityShadowKunai entity) {
+        return TEXTURE;
+    }
+}
+
+
+
+=========================================
+FILE: EntityShadowKunai.java
+=========================================
+package net.luck.narutoaddon.entity;
+
+import net.luck.narutoaddon.Items.ShadowKg.ItemShadowRelease;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.World;
+
+import java.util.List;
+import java.util.UUID;
+
+public class EntityShadowKunai extends Entity {
+
+    private UUID ownerUUID;
+    // Definiamo la durata massima: 10 secondi = 200 ticks
+    private static final int MAX_LIFETIME = 200;
+
+    public EntityShadowKunai(World worldIn) {
+        super(worldIn);
+        this.setSize(0.5F, 0.5F);
+        this.noClip = true;
+    }
+
+    public EntityShadowKunai(World worldIn, double x, double y, double z) {
+        this(worldIn);
+        this.setPosition(x, y, z);
+    }
+
+    public void setOwner(EntityPlayer owner) {
+        if (owner != null) {
+            this.ownerUUID = owner.getUniqueID();
+        }
+    }
+
+    @Override
+    public void onUpdate() {
+        super.onUpdate();
+
+        // Il Kunai rimane fisso a terra dove viene spawnato
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
+
+        if (!this.world.isRemote) {
+            // 1. SICUREZZA DESPAWN: 10 secondi (200 ticks)
+            if (this.ticksExisted > MAX_LIFETIME) {
+                this.setDead();
+                return;
+            }
+
+            // 2. LOGICA DI ATTIVAZIONE
+            // Raggio di 1.5 blocchi per rilevare il passaggio di nemici
+            AxisAlignedBB triggerArea = this.getEntityBoundingBox().grow(1.5D);
+            List<EntityLivingBase> targets = this.world.getEntitiesWithinAABB(EntityLivingBase.class, triggerArea);
+
+            for (EntityLivingBase target : targets) {
+                // Filtri: No proprietario, no player in Creative
+                boolean isOwner = ownerUUID != null && target.getUniqueID().equals(ownerUUID);
+                boolean isCreative = (target instanceof EntityPlayer && ((EntityPlayer)target).isCreative());
+
+                if (!isOwner && !isCreative && target.isEntityAlive()) {
+                    // Recuperiamo il caster tramite l'UUID salvato nel Kunai
+                    EntityPlayer caster = (ownerUUID != null) ? this.world.getPlayerEntityByUUID(ownerUUID) : null;
+
+                    // FIX ANTI-CRASH: Controlliamo se il caster esiste ed è online
+                    if (caster != null) {
+                        // Se il caster c'è, applichiamo il congelamento normale attribuito a lui
+                        ItemShadowRelease.applyHardFreeze(caster, target, 140);
+                    } else {
+                        // Se il caster è null (es. offline o rilocato), evitiamo il crash!
+                        // Opzione A: Se applyHardFreeze crasha senza caster, simuliamo il congelamento usando il target stesso come finto caster
+                        if (target instanceof EntityPlayer) {
+                            ItemShadowRelease.applyHardFreeze((EntityPlayer) target, target, 140);
+                        } else {
+                            // Se il target è un mob (es. uno Zombie) e applyHardFreeze vuole SOLO un EntityPlayer,
+                            // fermiamo l'esecuzione per evitare il crash, oppure esegui un congelamento vanilla alternativo.
+                            // In questo caso, se non c'è un player a cui assegnare lo Stun, saltiamo la riga distruttiva.
+                            System.out.println("[ShadowKunai] Caster offline, skipping freeze to prevent crash.");
+                        }
+                    }
+
+                    // Il Kunai scompare in ogni caso dopo aver provato ad attivare la trappola
+                    this.setDead();
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void entityInit() {}
+
+    @Override
+    protected void readEntityFromNBT(NBTTagCompound compound) {
+        if (compound.hasUniqueId("OwnerUUID")) {
+            this.ownerUUID = compound.getUniqueId("OwnerUUID");
+        }
+    }
+
+    @Override
+    protected void writeEntityToNBT(NBTTagCompound compound) {
+        if (this.ownerUUID != null) {
+            compound.setUniqueId("OwnerUUID", this.ownerUUID);
+        }
+    }
+
+    @Override
+    public boolean canBeCollidedWith() {
+        return false;
+    }
+}
+
+
+
+=========================================
+FILE: JintonHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+// Fondamentale: registra la classe automaticamente nel bus degli eventi di Forge
+@Mod.EventBusSubscriber(modid = "narutoaddon")
+public class JintonHandler {
+
+    // 5.0F = 2.5 cuori di danno. Se colpisce a ripetizione, il danno sarà bilanciato.
+    private static final float FIXED_NERF_DAMAGE = 5.0F;
+
+    @SubscribeEvent
+    public static void onDustDamage(LivingHurtEvent event) {
+        // Controllo di sicurezza per evitare NullPointerException
+        if (event.getSource() == null || event.getSource().getDamageType() == null) return;
+
+        // Controllo 1: Il danno del Jinton originale è "ninjutsu"
+        if (event.getSource().getDamageType().equalsIgnoreCase("ninjutsu")) {
+
+            // Controllo 2: Verifichiamo l'entità che ha causato il danno (Cubo o Raggio)
+            if (event.getSource().getImmediateSource() != null) {
+                String entityName = event.getSource().getImmediateSource().getClass().getSimpleName().toLowerCase();
+
+                // Usiamo "contains" per essere più flessibili con i nomi delle classi della mod originale
+                if (entityName.contains("cube") || entityName.contains("beam")) {
+
+                    // Applichiamo il nerf al danno
+                    event.setAmount(FIXED_NERF_DAMAGE);
+                }
+            }
+        }
+    }
+}
+
+
+
+=========================================
+FILE: ModelHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.luck.narutoaddon.init.ModItems;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.item.Item;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+
+@Mod.EventBusSubscriber(modid = "narutoaddon", value = Side.CLIENT)
+public class ModelHandler {
+
+    @SubscribeEvent
+    public static void registerModels(ModelRegistryEvent event) {
+        // Usa ModItems invece di RegistryHandler
+        registerModel(ModItems.SHADOW_RELEASE);
+    }
+
+    private static void registerModel(Item item) {
+        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
+    }
+}
+
+
+
+=========================================
+FILE: PurpleLightningHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.luck.narutoaddon.Items.ItemPurpleLightning;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+
+@Mod.EventBusSubscriber(modid = "narutoaddon")
+public class PurpleLightningHandler {
+
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+        EntityPlayer player = event.player;
+        NBTTagCompound nbt = player.getEntityData();
+
+        long until = nbt.getLong("PurpleLightningOverloadUntil");
+        long currentTime = player.world.getTotalWorldTime();
+
+        // Se il tempo è scaduto, resettiamo SEMPRE a 0
+        if (until > 0 && currentTime >= until) {
+            nbt.setLong("PurpleLightningOverloadUntil", 0L);
+            if (!player.world.isRemote) {
+                player.sendStatusMessage(new TextComponentString("§aNervi stabilizzati!"), true);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRightClick(PlayerInteractEvent.RightClickItem event) {
+        EntityPlayer player = event.getEntityPlayer();
+        NBTTagCompound nbt = player.getEntityData();
+        long until = nbt.getLong("PurpleLightningOverloadUntil");
+        long currentTime = player.world.getTotalWorldTime();
+
+        // Se non hai il fulmine in mano, non fare nulla e lascia passare l'evento
+        if (!(player.getHeldItemMainhand().getItem() instanceof ItemPurpleLightning)) {
+            return;
+        }
+
+        // Se hai il fulmine ed è in overload, blocca il click
+        if (until > 0 && currentTime < until) {
+            if (event.isCancelable()) {
+                event.setCanceled(true);
+            }
+        }
+    }
+}
+
+
+
+=========================================
+FILE: RegistryHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.luck.narutoaddon.Items.ItemPurpleLightning;
+import net.luck.narutoaddon.Items.ShadowKg.ItemShadowRelease;
+import net.luck.narutoaddon.entity.EntityShadowKunai;
+import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.registry.EntityEntry;
+import net.minecraftforge.fml.common.registry.EntityEntryBuilder;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Mod.EventBusSubscriber
+public class RegistryHandler {
+
+    public static final List<Item> ITEMS = new ArrayList<>();
+    public static final Item PURPLE_LIGHTNING = new ItemPurpleLightning();
+    public static final Item SHADOW_RELEASE = new ItemShadowRelease();
+
+    public static void init() {
+        if (ITEMS.isEmpty()) {
+            PURPLE_LIGHTNING.setRegistryName(new ResourceLocation("narutoaddon", "purple_lightning"));
+            PURPLE_LIGHTNING.setUnlocalizedName("purple_lightning");
+
+            SHADOW_RELEASE.setRegistryName(new ResourceLocation("narutoaddon", "shadow_release"));
+            SHADOW_RELEASE.setUnlocalizedName("shadow_release");
+
+            ITEMS.add(PURPLE_LIGHTNING);
+            ITEMS.add(SHADOW_RELEASE);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onItemRegister(RegistryEvent.Register<Item> event) {
+        init();
+        event.getRegistry().registerAll(ITEMS.toArray(new Item[0]));
+    }
+
+    private static int entityId = 500;
+
+    @SubscribeEvent
+    public static void onEntityRegister(RegistryEvent.Register<EntityEntry> event) {
+
+        EntityEntry shadowKunai = EntityEntryBuilder.create()
+                .entity(EntityShadowKunai.class)
+                .name("shadow_kunai")
+                .id(new ResourceLocation("narutoaddon", "shadow_kunai"), entityId++)
+                .tracker(64, 20, true)
+                .build();
+
+        event.getRegistry().registerAll( shadowKunai);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public static void onModelRegister(net.minecraftforge.client.event.ModelRegistryEvent event) {
+        for (Item item : ITEMS) {
+            // Usiamo i percorsi completi per evitare import in cima al file
+            net.minecraft.client.renderer.block.model.ModelResourceLocation loc =
+                    new net.minecraft.client.renderer.block.model.ModelResourceLocation(item.getRegistryName(), "inventory");
+            net.minecraftforge.client.model.ModelLoader.setCustomModelResourceLocation(item, 0, loc);
+        }
+    }
+
+    public static void registerEntities() {}
+
+    @SideOnly(Side.CLIENT)
+    public static void registerEntityRenders() {
+        // Registrazione sicura per il Kunai
+        net.minecraftforge.fml.client.registry.RenderingRegistry.registerEntityRenderingHandler(
+                net.luck.narutoaddon.entity.EntityShadowKunai.class,
+                manager -> new net.luck.narutoaddon.client.renderer.RenderShadowKunai(manager)
+        );
+
+    }
+}
+
+
+
+=========================================
+FILE: ShadowEventHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.luck.narutoaddon.entity.EntityShadowKunai;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+import java.util.List;
+
+@Mod.EventBusSubscriber(modid = "narutoaddon")
+public class ShadowEventHandler {
+
+    private static final double R = 0.001D;
+    private static final double G = 0.0D;
+    private static final double B = 0.001D;
+
+    // Metodo Helper per ottenere i dati NBT in modo sicuro su Forge 1.12.2
+    private static NBTTagCompound getSafeData(EntityLivingBase entity) {
+        return entity.writeToNBT(new NBTTagCompound()).getCompoundTag("ForgeData");
+    }
+
+    // Metodo Helper per salvare i dati NBT modificati
+    private static void saveSafeData(EntityLivingBase entity, NBTTagCompound data) {
+        NBTTagCompound topTag = entity.writeToNBT(new NBTTagCompound());
+        topTag.setTag("ForgeData", data);
+        entity.readFromNBT(topTag);
+    }
+
+    @SubscribeEvent
+    public static void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
+        EntityLivingBase entity = event.getEntityLiving();
+        if (entity == null || entity.world == null) return;
+
+        World world = entity.world;
+        NBTTagCompound data = getSafeData(entity);
+        long currentTime = world.getTotalWorldTime();
+
+        // 1. PARTICELLE CLOAK (Effetto Visivo Armatura d'Ombra)
+        if (data.getBoolean("ShadowCloakActive")) {
+            if (world instanceof WorldServer && currentTime % 2 == 0) {
+                spawnBlackParticle(world, entity.posX + (world.rand.nextDouble()-0.5)*0.7, entity.posY + world.rand.nextDouble()*2, entity.posZ + (world.rand.nextDouble()-0.5)*0.7);
+            }
+        }
+
+        // 2. LOGICA FREEZE TOTALE (Immobilizzazione Jutsu)
+        if (data.hasKey("ShadowFrozenUntil") && data.getLong("ShadowFrozenUntil") > currentTime) {
+            entity.setPositionAndUpdate(data.getDouble("FreezeX"), data.getDouble("FreezeY"), data.getDouble("FreezeZ"));
+            entity.rotationYaw = data.getFloat("FreezeYaw");
+            entity.rotationPitch = data.getFloat("FreezePitch");
+            entity.rotationYawHead = data.getFloat("FreezeYaw");
+            entity.motionX = 0; entity.motionY = 0; entity.motionZ = 0;
+            entity.velocityChanged = true;
+
+            if (world instanceof WorldServer) renderHardFreezeVisuals((WorldServer) world, entity);
+        }
+
+        // 3. GATHERING LOGIC (Attrazione verso un punto)
+        if (data.getBoolean("ShadowGatheringActive")) {
+            handleGatheringLogic(world, entity, data, currentTime);
+        }
+
+        // 4. TRAP LOGIC (Attivazione Trappola Kunai)
+        if (data.hasKey("TrapPosX")) {
+            handleTrapLogic(world, entity, data);
+        }
+
+        // Salviamo i dati alla fine dell'update
+        saveSafeData(entity, data);
+    }
+
+    private static void renderHardFreezeVisuals(WorldServer ws, EntityLivingBase entity) {
+        double[] heights = {0.2D, 1.2D};
+        for (double h : heights) {
+            for (int i = 0; i < 10; i++) {
+                double angle = i * (Math.PI * 2 / 10);
+                spawnBlackParticle(ws, entity.posX + Math.cos(angle) * 0.9, entity.posY + h, entity.posZ + Math.sin(angle) * 0.9);
+            }
+        }
+    }
+
+    private static void handleGatheringLogic(World world, EntityLivingBase caster, NBTTagCompound data, long time) {
+        double tx = data.getDouble("GatherPosX"), ty = data.getDouble("GatherPosY"), tz = data.getDouble("GatherPosZ");
+        double range = 10.0D;
+
+        if (world instanceof WorldServer) {
+            WorldServer ws = (WorldServer) world;
+            double rot = time * 0.5D;
+            for (int line = 0; line < 3; line++) {
+                double baseAngle = (Math.PI * 2 / 3) * line + rot;
+                for (int i = 0; i < 15; i++) {
+                    double dist = (i / 15.0D) * range;
+                    spawnBlackParticle(ws, tx + Math.cos(baseAngle + (i*0.15)) * dist, ty + 0.1, tz + Math.sin(baseAngle + (i*0.15)) * dist);
+                }
+            }
+        }
+
+        if (time % 2 == 0) {
+            for (EntityLivingBase t : world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(tx, ty, tz, tx, ty, tz).grow(range))) {
+                if (t != caster && !t.isDead) {
+                    double dx = tx - t.posX, dy = (ty + 0.5) - t.posY, dz = tz - t.posZ;
+                    double dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    if (dist > 0.4) {
+                        t.motionX = (dx/dist)*0.5; t.motionY = (dy/dist)*0.5; t.motionZ = (dz/dist)*0.5;
+                        t.velocityChanged = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private static void handleTrapLogic(World world, EntityLivingBase caster, NBTTagCompound data) {
+        double tx = data.getDouble("TrapPosX"), ty = data.getDouble("TrapPosY"), tz = data.getDouble("TrapPosZ");
+
+        if (world instanceof WorldServer) {
+            WorldServer ws = (WorldServer) world;
+            List<EntityShadowKunai> shadowKunais = world.getEntitiesWithinAABB(EntityShadowKunai.class, new AxisAlignedBB(tx, ty, tz, tx, ty, tz).grow(0.5));
+
+            if (shadowKunais.isEmpty() || shadowKunais.get(0).isDead) {
+                data.removeTag("TrapPosX"); data.removeTag("TrapPosY"); data.removeTag("TrapPosZ");
+                return;
+            }
+
+            if (world.getTotalWorldTime() % 2 == 0) {
+                for (int i = 0; i < 16; i++) {
+                    double a = i * (Math.PI * 2 / 16);
+                    spawnBlackParticle(ws, tx + Math.cos(a) * 2.0, ty + 0.1, tz + Math.sin(a) * 2.0);
+                }
+            }
+
+            for (EntityLivingBase target : world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(tx, ty, tz, tx, ty, tz).grow(2.0, 1.5, 2.0))) {
+                if (target != caster && !target.isDead) {
+                    NBTTagCompound tData = getSafeData(target);
+                    tData.setDouble("FreezeX", target.posX);
+                    tData.setDouble("FreezeY", target.posY);
+                    tData.setDouble("FreezeZ", target.posZ);
+                    tData.setFloat("FreezeYaw", target.rotationYaw);
+                    tData.setFloat("FreezePitch", target.rotationPitch);
+                    tData.setLong("ShadowFrozenUntil", world.getTotalWorldTime() + 200);
+                    saveSafeData(target, tData);
+
+                    shadowKunais.get(0).setDead();
+                    data.removeTag("TrapPosX"); data.removeTag("TrapPosY"); data.removeTag("TrapPosZ");
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void spawnBlackParticle(World world, double x, double y, double z) {
+        if (world instanceof WorldServer) ((WorldServer) world).spawnParticle(EnumParticleTypes.REDSTONE, true, x, y, z, 0, R, G, B, 1.0D);
+    }
+}
+
+
+
+=========================================
+FILE: SpikeHandler.java
+=========================================
+package net.luck.narutoaddon.handlers;
+
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+// Fondamentale: registra la classe automaticamente nel bus degli eventi di Forge
+@Mod.EventBusSubscriber(modid = "narutoaddon")
+public class SpikeHandler { private static final float SPIKE_NERF_DAMAGE = 1.0F;
+
+    @SubscribeEvent
+    public static void onDustDamage(LivingHurtEvent event) {
+        // Controllo di sicurezza per evitare NullPointerException
+        if (event.getSource() == null || event.getSource().getDamageType() == null) return;
+
+        // Controllo 1: Il danno del Jinton originale è "ninjutsu"
+        if (event.getSource().getDamageType().equalsIgnoreCase("ninjutsu")) {
+
+            // Controllo 2: Verifichiamo l'entità che ha causato il danno (Cubo o Raggio)
+            if (event.getSource().getImmediateSource() != null) {
+                String entityName = event.getSource().getImmediateSource().getClass().getSimpleName().toLowerCase();
+
+                // Usiamo "contains" per essere più flessibili con i nomi delle classi della mod originale
+                if (entityName.contains("spike") || entityName.contains("spears") || entityName.contains("spear")) {
+
+                    // Applichiamo il nerf al danno
+                    event.setAmount(SPIKE_NERF_DAMAGE);
+                }
+            }
+        }
+    }
+}
+
+
+
+
+=========================================
+FILE: ModItems.java
+=========================================
+package net.luck.narutoaddon.init;
+
+import net.luck.narutoaddon.Items.ItemPurpleLightning;
+import net.luck.narutoaddon.Items.ShadowKg.ItemShadowRelease;
+import net.minecraft.item.Item;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ModItems {
+
+    // Questa lista serve al RegistryHandler per registrare tutto in un colpo solo
+    public static final List<Item> ITEMS = new ArrayList<Item>();
+
+    // Qui dichiariamo i tuoi due Jutsu principali
+    public static final Item PURPLE_LIGHTNING = new ItemPurpleLightning();
+    public static final Item SHADOW_RELEASE = new ItemShadowRelease();
+
+    static {
+        ITEMS.add(PURPLE_LIGHTNING);
+        ITEMS.add(SHADOW_RELEASE);
+    }
+}
+
+
+
+=========================================
+FILE: ItemPurpleLightning.java
+=========================================
+package net.luck.narutoaddon.Items;
+
+import net.luck.narutoaddon.LuckTabs;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
+import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemStack;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.narutomod.item.ItemJutsu;
+import net.narutomod.procedure.ProcedureUtils;
+
+import java.util.Random;
+
+public class ItemPurpleLightning extends ItemJutsu.Base {
+
+    // Definizioni dei Jutsu
+    public static final ItemJutsu.JutsuEnum SHIDEN = new ItemJutsu.JutsuEnum(0, "purple_lightning_bolt", 'S', 400, 150d, new NetShiden());
+    public static final ItemJutsu.JutsuEnum NAGASHI = new ItemJutsu.JutsuEnum(1, "purple_lightning_stream", 'A', 300, 100d, new NetNagashi());
+
+    private static final String CHARGE_TAG = "PurpleLightningChargeValue";
+    private static final float MAX_CHARGE = 250.0f;
+
+    public ItemPurpleLightning() {
+        super(ItemJutsu.JutsuEnum.Type.RAITON, SHIDEN, NAGASHI);
+        this.setUnlocalizedName("purple_lightning");
+        this.setRegistryName("purple_lightning");
+        this.setCreativeTab(LuckTabs.LUCK_TAB);
+    }
+
+    // --- LOGICA DELL'ITEM ---
+
+    @Override
+    public EnumAction getItemUseAction(ItemStack stack) {
+        return EnumAction.BOW;
+    }
+
+    @Override
+    public int getMaxItemUseDuration(ItemStack stack) {
+        return 72000;
+    }
+
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
+        ItemStack stack = player.getHeldItem(hand);
+        // Avviamo l'uso senza logiche pesanti per evitare desync immediati
+        player.setActiveHand(hand);
+        return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+    }
+
+    @Override
+    public void onUsingTick(ItemStack stack, EntityLivingBase entity, int count) {
+        if (entity instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) entity;
+            int duration = this.getMaxItemUseDuration(stack) - count;
+
+            // Iniziamo la carica dopo un brevissimo delay per stabilità
+            if (duration > 5) {
+                // Calcolo fluido della carica (2.0f per tick fino a 250)
+                float charge = Math.min(duration * 2.0f, MAX_CHARGE);
+
+                // Salvataggio NBT
+                player.getEntityData().setFloat(CHARGE_TAG, charge);
+
+                if (!player.world.isRemote) {
+                    // - Utilizziamo la sincronizzazione della mod base per evitare il flickering
+                    entity.getEntityData().setFloat(CHARGE_TAG, charge);
+                } else {
+                    // Particelle solo lato Client
+                    spawnChargeParticles(player, charge, this.getCurrentJutsu(stack) == NAGASHI);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onPlayerStoppedUsing(ItemStack stack, World world, EntityLivingBase entity, int timeLeft) {
+        if (!world.isRemote && entity instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) entity;
+            float power = player.getEntityData().getFloat(CHARGE_TAG);
+
+            // Controllo soglia minima per attivazione
+            if (power >= 10.0f) {
+                // Esecuzione del jutsu tramite la classe base
+                this.executeJutsu(stack, player, power);
+            }
+
+            // Reset pulito e sincronizzazione finale
+            player.getEntityData().setFloat(CHARGE_TAG, 0.0f);
+            entity.getEntityData().setFloat(CHARGE_TAG, power);
+        }
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int slot, boolean isSelected) {
+        // Logica di onUpdate rimossa per prevenire conflitti con la carica attiva
+    }
+
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        // Fondamentale: impedisce al braccio di resettarsi quando cambiano i dati NBT (carica)
+        return slotChanged;
+    }
+
+    // --- EFFETTI VISIVI E UTILITY ---
+
+    private void spawnChargeParticles(EntityLivingBase player, float charge, boolean isNagashi) {
+        Random rand = player.world.rand;
+        if (isNagashi) {
+            float rad = 1.0f + (charge / MAX_CHARGE) * 3.0f;
+            for (int i = 0; i < 2; i++) {
+                double a = rand.nextDouble() * 2 * Math.PI;
+                player.world.spawnParticle(EnumParticleTypes.REDSTONE,
+                        player.posX + Math.cos(a) * rad, player.posY + 0.5, player.posZ + Math.sin(a) * rad,
+                        0.5D, 0.0D, 0.9D); // Colore violaceo tramite parametri redstone
+            }
+        } else {
+            Vec3d hand = getHandPos(player);
+            player.world.spawnParticle(EnumParticleTypes.CRIT_MAGIC, hand.x, hand.y, hand.z, 0, 0.05, 0);
+        }
+    }
+
+    public static Vec3d getHandPos(EntityLivingBase entity) {
+        Vec3d look = entity.getLookVec();
+        Vec3d up = new Vec3d(0, 1, 0);
+        Vec3d right = look.crossProduct(up).normalize();
+        return new Vec3d(entity.posX + look.x * 0.6 - right.x * 0.4,
+                entity.posY + entity.getEyeHeight() - 0.3 + look.y * 0.4,
+                entity.posZ + look.z * 0.6 - right.z * 0.4);
+    }
+
+    public static void applyLightningShock(EntityLivingBase target, int duration) {
+        target.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, duration, 10));
+        target.addPotionEffect(new PotionEffect(MobEffects.MINING_FATIGUE, duration, 2));
+        if (target.world instanceof WorldServer) {
+            ((WorldServer)target.world).spawnParticle(EnumParticleTypes.CRIT_MAGIC,
+                    target.posX, target.posY + 1, target.posZ, 20, 0.5, 0.5, 0.5, 0.1);
+        }
+    }
+
+    // --- IMPLEMENTAZIONE JUTSU CALLBACKS ---
+
+    public static class NetShiden implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            // - Uso dei metodi Raytrace forniti da ProcedureUtils
+            RayTraceResult res = ProcedureUtils.objectEntityLookingAt(entity, 20.0D);
+            if (res != null && res.entityHit instanceof EntityLivingBase) {
+                EntityLivingBase target = (EntityLivingBase) res.entityHit;
+                target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer)entity), 15.0f + (power / 10f));
+                applyLightningShock(target, 60);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class NetNagashi implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            float radius = 4.0f + (power / MAX_CHARGE) * 8.0f;
+            AxisAlignedBB area = entity.getEntityBoundingBox().grow(radius);
+            boolean hit = false;
+            for (EntityLivingBase target : entity.world.getEntitiesWithinAABB(EntityLivingBase.class, area)) {
+                if (target != entity) {
+                    target.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer)entity), 10.0f);
+                    applyLightningShock(target, 40);
+                    hit = true;
+                }
+            }
+            return hit;
+        }
+    }
+}
+
+
+
+=========================================
+FILE: ItemShadowRelease.java
+=========================================
+package net.luck.narutoaddon.Items.ShadowKg;
+
+import net.luck.narutoaddon.LuckTabs;
+import net.luck.narutoaddon.entity.EntityShadowKunai;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.World;
+import net.narutomod.Chakra;
+import net.narutomod.item.ItemJutsu;
+import net.narutomod.procedure.ProcedureUtils;
+
+public class ItemShadowRelease extends ItemJutsu.Base {
+    public static final ItemJutsu.JutsuEnum TRAP = new ItemJutsu.JutsuEnum(0, "shadow_trap", 'B', 100, 100d, new NetTrap());
+    public static final ItemJutsu.JutsuEnum CLOAK = new ItemJutsu.JutsuEnum(1, "shadow_cloak", 'A', 150, 150d, new NetCloak());
+    public static final ItemJutsu.JutsuEnum GATHERING = new ItemJutsu.JutsuEnum(2, "shadow_gathering", 'S', 200, 250d, new NetGathering());
+    public static final ItemJutsu.JutsuEnum TENDRILS = new ItemJutsu.JutsuEnum(3, "shadow_tendrils", 'S', 200, 300d, new NetTendrils());
+    public ItemShadowRelease() {
+        super(ItemJutsu.JutsuEnum.Type.NINJUTSU, TRAP, CLOAK, GATHERING, TENDRILS);
+        this.setUnlocalizedName("shadow_release");
+        this.setRegistryName("shadow_release");
+        this.setCreativeTab(LuckTabs.LUCK_TAB);
+    }
+
+    // --- LOGICA COSTI DINAMICI (+5% per ogni entità extra bloccata) ---
+
+    public int getStunnedCount(EntityPlayer player) {
+        int count = 0;
+        String playerUuid = player.getUniqueID().toString();
+        for (Entity entity : player.world.loadedEntityList) {
+            if (entity instanceof EntityLivingBase) {
+                NBTTagCompound nbt = entity.getEntityData();
+                if (nbt.getBoolean("IsShadowStunned") && playerUuid.equals(nbt.getString("StunnedByUUID"))) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private double getChakraMultiplier(EntityPlayer player) {
+        int count = getStunnedCount(player);
+        // Se count <= 1 moltiplicatore è 1.0. Se count è 2 -> 1.05, se count è 3 -> 1.10.
+        return 1.0 + (Math.max(0, count - 1) * 0.05);
+    }
+
+    @Override
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
+        ItemStack itemstack = playerIn.getHeldItem(handIn);
+        if (!worldIn.isRemote) {
+            double multiplier = getChakraMultiplier(playerIn);
+            if (multiplier > 1.0) {
+                ItemJutsu.JutsuEnum current = this.getCurrentJutsu(itemstack);
+                double extraCost = (current.chakraUsage * multiplier) - current.chakraUsage;
+                if (!Chakra.pathway(playerIn).consume(extraCost)) {
+                    playerIn.sendStatusMessage(new TextComponentString("§cTo many entities blocked! Insufficient chakra due to Overload."), true);
+                    return new ActionResult<>(EnumActionResult.FAIL, itemstack);
+                }
+            }
+            this.executeJutsu(itemstack, playerIn, 1.0f);
+        }
+        playerIn.swingArm(handIn);
+        return new ActionResult<>(EnumActionResult.SUCCESS, itemstack);
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity entity, int itemSlot, boolean isSelected) {
+        super.onUpdate(stack, world, entity, itemSlot, isSelected);
+
+        if (entity instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) entity;
+            NBTTagCompound nbt = player.getEntityData();
+
+            if (!world.isRemote) {
+                long currentTime = world.getTotalWorldTime();
+
+                // 1. CLOAK: Mantenimento e Cooldown dinamico
+                if (nbt.getBoolean("ShadowCloakActive")) {
+                    nbt.setInteger("ShadowUsageTimer", nbt.getInteger("ShadowUsageTimer") + 1);
+                    player.addPotionEffect(new PotionEffect(MobEffects.SPEED, 25, 14, false, false));
+                    player.addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, 25, 2, false, false));
+
+                    double costPerTick = 1.5d * getChakraMultiplier(player);
+                    if (!Chakra.pathway(player).consume(costPerTick)) {
+                        deactivateCloak(player, nbt);
+                    }
+                } else if (nbt.getInteger("ShadowUsageTimer") > 0) {
+                    this.setJutsuCooldown(stack, CLOAK, nbt.getInteger("ShadowUsageTimer") * 2L);
+                    nbt.setInteger("ShadowUsageTimer", 0);
+                }
+
+                // 2. GATHERING: Danni puri e Blindness al centro
+                if (nbt.getBoolean("ShadowGatheringActive")) {
+                    if (currentTime % 20 == 0) {
+                        double gx = nbt.getDouble("GatherPosX"), gy = nbt.getDouble("GatherPosY"), gz = nbt.getDouble("GatherPosZ");
+                        AxisAlignedBB center = new AxisAlignedBB(gx-1.5, gy-1.5, gz-1.5, gx+1.5, gy+1.5, gz+1.5);
+                        for (EntityLivingBase target : world.getEntitiesWithinAABB(EntityLivingBase.class, center)) {
+                            if (target != player) {
+                                target.addPotionEffect(new PotionEffect(MobEffects.BLINDNESS, 60, 0));
+                                target.attackEntityFrom(DamageSource.OUT_OF_WORLD, 5.0f);
+                            }
+                        }
+                    }
+                }
+
+                // 3. STUN (Hard Freeze)
+                if (nbt.getBoolean("IsShadowStunned")) {
+                    if (currentTime >= nbt.getLong("ShadowFrozenUntil")) {
+                        nbt.setBoolean("IsShadowStunned", false);
+                        nbt.removeTag("StunnedByUUID");
+                        player.removePotionEffect(MobEffects.SLOWNESS);
+                    } else {
+                        player.setPositionAndUpdate(nbt.getDouble("FreezeX"), nbt.getDouble("FreezeY"), nbt.getDouble("FreezeZ"));
+                    }
+                }
+            }
+        }
+    }
+
+    private void deactivateCloak(EntityPlayer player, NBTTagCompound nbt) {
+        nbt.setBoolean("ShadowCloakActive", false);
+        player.removePotionEffect(MobEffects.SPEED);
+        player.removePotionEffect(MobEffects.RESISTANCE);
+    }
+
+    public static void applyHardFreeze(EntityPlayer caster, EntityLivingBase target, int duration) {
+        if (target == null) return; // Sicurezza extra: se non c'è il bersaglio, non facciamo nulla
+
+        NBTTagCompound data = target.getEntityData();
+        data.setDouble("FreezeX", target.posX);
+        data.setDouble("FreezeY", target.posY);
+        data.setDouble("FreezeZ", target.posZ);
+        data.setLong("ShadowFrozenUntil", target.world.getTotalWorldTime() + duration);
+        data.setBoolean("IsShadowStunned", true);
+
+        // FIX ANTI-CRASH: Registriamo l'UUID del caster solo se il caster è effettivamente presente
+        if (caster != null) {
+            data.setString("StunnedByUUID", caster.getUniqueID().toString());
+        } else {
+            // Opzionale: se il caster è null, salviamo una stringa vuota o un ID di default
+            // in modo che il sistema sappia che lo stun non ha un proprietario attivo.
+            data.setString("StunnedByUUID", "SYSTEM_OR_OFFLINE");
+        }
+
+        target.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, duration, 127, false, false));
+    }
+
+    // --- CALLBACKS ---
+
+    public static class NetCloak implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            NBTTagCompound nbt = entity.getEntityData();
+            boolean active = !nbt.getBoolean("ShadowCloakActive");
+            nbt.setBoolean("ShadowCloakActive", active);
+            entity.world.playSound(null, entity.posX, entity.posY, entity.posZ, SoundEvents.ENTITY_ENDERMEN_TELEPORT, SoundCategory.PLAYERS, 1.0f, active ? 0.5f : 0.8f);
+            return true;
+        }
+    }
+
+    public static class NetTendrils implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            if (!(entity instanceof EntityPlayer)) return false;
+            EntityPlayer player = (EntityPlayer) entity;
+
+            if (((ItemShadowRelease)stack.getItem()).getStunnedCount(player) >= 3) {
+                if (!player.world.isRemote) player.sendStatusMessage(new TextComponentString("§cTendrils Max Reached!"), true);
+                return false;
+            }
+
+            RayTraceResult res = ProcedureUtils.objectEntityLookingAt(entity, 15.0D);
+            if (res != null && res.entityHit instanceof EntityLivingBase) {
+                if (!entity.world.isRemote) applyHardFreeze(player, (EntityLivingBase)res.entityHit, 200);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class NetGathering implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            // Se non c'è il tag NBT, il cooldown è sicuramente 0
+            if (stack.hasTagCompound()) {
+                long currentTime = entity.world.getTotalWorldTime();
+                // La chiave usata dalla mod per i cooldown è solitamente "JutsuCooldown" + indice
+                String cooldownKey = "JutsuCooldown" + GATHERING.index;
+                if (currentTime < stack.getTagCompound().getLong(cooldownKey)) {
+                    return false; // È ancora in cooldown
+                }
+            }
+
+            RayTraceResult look = ProcedureUtils.raytraceBlocks(entity, 20.0D);
+            if (look != null) {
+                NBTTagCompound data = entity.getEntityData();
+                data.setBoolean("ShadowGatheringActive", !data.getBoolean("ShadowGatheringActive"));
+                data.setDouble("GatherPosX", look.hitVec.x);
+                data.setDouble("GatherPosY", look.hitVec.y + 1.1);
+                data.setDouble("GatherPosZ", look.hitVec.z);
+
+                // Usiamo il metodo setter che avevi già nel codice (che solitamente è pubblico)
+                ((ItemShadowRelease)stack.getItem()).setJutsuCooldown(stack, GATHERING, 60L);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class NetTrap implements ItemJutsu.IJutsuCallback {
+        @Override
+        public boolean createJutsu(ItemStack stack, EntityLivingBase entity, float power) {
+            RayTraceResult look = ProcedureUtils.raytraceBlocks(entity, 15.0D);
+            if (look != null && !entity.world.isRemote) {
+                BlockPos p = look.getBlockPos();
+                AxisAlignedBB checkArea = new AxisAlignedBB(p).grow(5);
+                if (!entity.world.getEntitiesWithinAABB(EntityShadowKunai.class, checkArea).isEmpty()) {
+                    if (entity instanceof EntityPlayer)
+                        ((EntityPlayer)entity).sendStatusMessage(new TextComponentString("§cThere is another Trap near!"), true);
+                    return false;
+                }
+                EntityShadowKunai k = new EntityShadowKunai(entity.world, p.getX()+0.5, p.getY()+1, p.getZ()+0.5);
+                if (entity instanceof EntityPlayer) k.setOwner((EntityPlayer)entity);
+                entity.world.spawnEntity(k);
+                return true;
+            }
+            return false;
+        }
+    }
+}
+
+
+
+=========================================
+FILE: PacketHandler.java
+=========================================
+package net.luck.narutoaddon.network;
+
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.relauncher.Side;
+
+public class PacketHandler {
+
+    public static SimpleNetworkWrapper INSTANCE;
+
+    private static int nextId = 0;
+
+    public static void init() {
+
+        if (INSTANCE != null) return;
+
+        INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel("shadowchannel");
+
+        INSTANCE.registerMessage(
+                PacketSyncShadowJutsu.Handler.class,
+                PacketSyncShadowJutsu.class,
+                nextId++,
+                Side.SERVER
+        );
+    }
+}
+
+
+
+=========================================
+FILE: PacketSyncShadowJutsu.java
+=========================================
+package net.luck.narutoaddon.network;
+
+import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.SoundCategory;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.narutomod.item.ItemJutsu;
+
+public class PacketSyncShadowJutsu implements IMessage {
+
+    // Costruttore obbligatorio per Forge
+    public PacketSyncShadowJutsu() {}
+
+    @Override
+    public void fromBytes(ByteBuf buf) {}
+
+    @Override
+    public void toBytes(ByteBuf buf) {}
+
+    public static class Handler implements IMessageHandler<PacketSyncShadowJutsu, IMessage> {
+        @Override
+        public IMessage onMessage(PacketSyncShadowJutsu message, MessageContext ctx) {
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            if (player == null) return null;
+
+            // Eseguiamo sul thread principale del server
+            player.getServerWorld().addScheduledTask(() -> {
+                // Controlliamo prima la mano principale, poi la secondaria
+                ItemStack stack = player.getHeldItemMainhand();
+                if (!(stack.getItem() instanceof ItemJutsu.Base)) {
+                    stack = player.getHeldItemOffhand();
+                }
+
+                if (stack.getItem() instanceof ItemJutsu.Base) {
+                    // 1. Rotazione logica NBT
+                    rotateJutsu(stack);
+
+                    // 2. Feedback sonoro (Sfoglio di pergamena)
+                    player.world.playSound(null, player.posX, player.posY, player.posZ,
+                            SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, SoundCategory.PLAYERS, 0.6f, 1.2f);
+
+                    // 3. Sincronizzazione totale inventario
+                    player.inventoryContainer.detectAndSendChanges();
+                }
+            });
+            return null;
+        }
+
+        private static void rotateJutsu(ItemStack stack) {
+            NBTTagCompound compound = stack.getTagCompound();
+            if (compound == null) {
+                compound = new NBTTagCompound();
+            }
+
+            // Cicla tra 0 e 4 (5 Jutsu totali)
+            int current = compound.getInteger("SelectedJutsu");
+            int next = (current + 1) % 5;
+
+            compound.setInteger("SelectedJutsu", next);
+            stack.setTagCompound(compound);
+
+            // Forza il sistema interno della Naruto Mod ad allinearsi
+            // Molte versioni usano l'indice 'index' per decidere quale Jutsu lanciare
+            compound.setInteger("index", next);
+        }
+    }
+}
+
+
+
+=========================================
+FILE: ClientProxy.java
+=========================================
+package net.luck.narutoaddon.proxy;
+
+import net.luck.narutoaddon.client.KeyHandler;
+import net.luck.narutoaddon.client.renderer.LayerShadowCloak;
+import net.luck.narutoaddon.handlers.RegistryHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.RenderPlayer;
+
+import java.util.Map;
+
+public class ClientProxy implements CommonProxy {
+
+    @Override
+    public void preInit() {
+        // Registrazione dei render delle entità
+        RegistryHandler.registerEntityRenders();
+    }
+
+    @Override
+    public void init() {
+        // 1. Inizializza il KeyBinding (Crea l'istanza del tasto)
+        KeyHandler.registerKeys();
+    }
+
+    @Override
+    public void postInit() {
+        // Registrazione dei layer per il mantello/ombra sulle skin dei giocatori
+        Map<String, RenderPlayer> skinMap = Minecraft.getMinecraft().getRenderManager().getSkinMap();
+
+        RenderPlayer defaultRender = skinMap.get("default");
+        if (defaultRender != null) {
+            defaultRender.addLayer(new LayerShadowCloak(defaultRender));
+        }
+
+        RenderPlayer slimRender = skinMap.get("slim");
+        if (slimRender != null) {
+            slimRender.addLayer(new LayerShadowCloak(slimRender));
+        }
+    }
+}
+
+
+
+=========================================
+FILE: CommonProxy.java
+=========================================
+package net.luck.narutoaddon.proxy;
+
+public interface CommonProxy {
+    void preInit();
+    void init();
+    void postInit();
+}
+
+
+
+=========================================
+FILE: ServerProxy.java
+=========================================
+package net.luck.narutoaddon.proxy;
+
+public class ServerProxy implements CommonProxy {
+    @Override public void preInit() {}
+    @Override public void init() {}
+    @Override public void postInit() {}
+}
+
+
+
+=========================================
+FILE: INinjaStats.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+public interface INinjaStats {
+    float getHealth();
+    void setHealth(float health);
+
+    int getStrength();
+    void setStrength(int strength);
+
+    int getAgility();
+    void setAgility(int agility);
+
+    String getReleases();
+    void setReleases(String releases);
+
+    String getKekkeiGenkai();
+    void setKekkeiGenkai(String kekkeiGenkai);
+
+    String getDojutsu();
+    void setDojutsu(String dojutsu);
+}
+
+
+
+=========================================
+FILE: NinjaStats.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+public class NinjaStats implements INinjaStats {
+    // Statistiche Numeriche
+    private float health = 20.0F;
+    private int strength = 1;
+    private int agility = 1;
+
+    // Liste per release e stirpi
+    private String releases = "Fire, Wind";
+    private String kekkeiGenkai = "None";
+    private String dojutsu = "Sharingan"; // Se perso, impostare a "None"
+
+    // --- Implementazione dei Metodi dell'Interfaccia ---
+
+    @Override
+    public float getHealth() { return health; }
+    @Override
+    public void setHealth(float health) { this.health = health; }
+
+    @Override
+    public int getStrength() { return strength; }
+    @Override
+    public void setStrength(int strength) { this.strength = strength; }
+
+    @Override
+    public int getAgility() { return agility; }
+    @Override
+    public void setAgility(int agility) { this.agility = agility; }
+
+    @Override
+    public String getReleases() { return releases; }
+    @Override
+    public void setReleases(String releases) { this.releases = releases; }
+
+    @Override
+    public String getKekkeiGenkai() { return kekkeiGenkai; }
+    @Override
+    public void setKekkeiGenkai(String kekkeiGenkai) { this.kekkeiGenkai = kekkeiGenkai; }
+
+    @Override
+    public String getDojutsu() { return dojutsu; }
+    @Override
+    public void setDojutsu(String dojutsu) { this.dojutsu = dojutsu; }
+}
+
+
+
+=========================================
+FILE: NinjaStatsProvider.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+
+public class NinjaStatsProvider implements ICapabilitySerializable<NBTBase> {
+    @CapabilityInject(INinjaStats.class)
+    public static final Capability<INinjaStats> NINJA_STATS = null;
+
+    private INinjaStats instance = NINJA_STATS.getDefaultInstance();
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        return capability == NINJA_STATS;
+    }
+
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        return capability == NINJA_STATS ? NINJA_STATS.<T>cast(this.instance) : null;
+    }
+
+    @Override
+    public NBTBase serializeNBT() {
+        return NINJA_STATS.getStorage().writeNBT(NINJA_STATS, this.instance, null);
+    }
+
+    @Override
+    public void deserializeNBT(NBTBase nbt) {
+        NINJA_STATS.getStorage().readNBT(NINJA_STATS, this.instance, null, nbt);
+    }
+}
+
+
+
+=========================================
+FILE: NinjaStatsStorage.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.Capability.IStorage;
+
+public class NinjaStatsStorage implements IStorage<INinjaStats> {
+
+    @Override
+    public NBTBase writeNBT(Capability<INinjaStats> capability, INinjaStats instance, EnumFacing side) {
+        NBTTagCompound compound = new NBTTagCompound();
+
+        // Saving numeric stats
+        compound.setFloat("health", instance.getHealth());
+        compound.setInteger("strength", instance.getStrength());
+        compound.setInteger("agility", instance.getAgility());
+
+        // Saving strings (Releases, Kekkei Genkai, Dojutsu)
+        compound.setString("releases", instance.getReleases());
+        compound.setString("kekkeiGenkai", instance.getKekkeiGenkai());
+        compound.setString("dojutsu", instance.getDojutsu());
+
+        return compound;
+    }
+
+    @Override
+    public void readNBT(Capability<INinjaStats> capability, INinjaStats instance, EnumFacing side, NBTBase nbt) {
+        if (!(nbt instanceof NBTTagCompound)) return;
+        NBTTagCompound compound = (NBTTagCompound) nbt;
+
+        // Loading numeric stats
+        instance.setHealth(compound.getFloat("health"));
+        instance.setStrength(compound.getInteger("strength"));
+        instance.setAgility(compound.getInteger("agility"));
+
+        // Loading strings
+        instance.setReleases(compound.getString("releases"));
+        instance.setKekkeiGenkai(compound.getString("kekkeiGenkai"));
+        instance.setDojutsu(compound.getString("dojutsu"));
+    }
+}
+
+
+
+=========================================
+FILE: NinjaStatsUtils.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+public class NinjaStatsUtils {
+
+    public static class NinjaData {
+        public int totalStr, totalAgi;
+        public String relText, kekText, dojText;
+        public String taiMode, senMode, sumMode;
+        public String sixPathsState;
+        public String medicalState;
+        public float hp, maxHp;
+    }
+
+    public static NinjaData scanPlayer(EntityPlayer player) {
+        NinjaData data = new NinjaData();
+        INinjaStats stats = player.getCapability(NinjaStatsProvider.NINJA_STATS, null);
+        if (stats == null) return data;
+
+        data.totalStr = stats.getStrength() + (player.isPotionActive(MobEffects.STRENGTH) ? player.getActivePotionEffect(MobEffects.STRENGTH).getAmplifier() + 1 : 0);
+        data.totalAgi = stats.getAgility() + (player.isPotionActive(MobEffects.SPEED) ? player.getActivePotionEffect(MobEffects.SPEED).getAmplifier() + 1 : 0);
+        data.hp = player.getHealth();
+        data.maxHp = player.getMaxHealth();
+
+        Set<String> foundReleases = new LinkedHashSet<>();
+        Set<String> foundKekkei = new LinkedHashSet<>();
+        Set<String> foundDojutsu = new LinkedHashSet<>();
+
+        data.taiMode = "None";
+        data.sumMode = "None";
+        data.sixPathsState = "No";
+        data.medicalState = "No";
+
+        boolean hasSixPaths = false;
+        boolean hasEightGates = false; // Semplificato: rileva solo presenza
+        String baseSage = "";
+
+        for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
+            ItemStack stack = player.inventory.getStackInSlot(i);
+            if (stack.isEmpty()) continue;
+
+            ResourceLocation res = stack.getItem().getRegistryName();
+            if (res == null) continue;
+            String id = res.getResourcePath().toLowerCase();
+
+            List<String> rawTooltip = stack.getTooltip(player, ITooltipFlag.TooltipFlags.NORMAL);
+            List<String> safeTooltip = new ArrayList<>();
+            if (rawTooltip.size() > 1) {
+                for (int j = 1; j < rawTooltip.size(); j++) {
+                    safeTooltip.add(TextFormatting.getTextWithoutFormattingCodes(rawTooltip.get(j)).toLowerCase());
+                }
+            }
+
+            // 1. RELEASES
+            if (id.contains("purple_lightning")) foundReleases.add("P. Light");
+            else if (id.contains("raiton") || id.contains("lightning_rel")) foundReleases.add("Light");
+            if (id.contains("katon") || id.contains("fire_rel")) foundReleases.add("Fire");
+            if (id.contains("suiton") || id.contains("water_rel")) foundReleases.add("Water");
+            if (id.contains("doton") || id.contains("earth_rel")) foundReleases.add("Earth");
+            if (id.contains("fuuton") || id.contains("wind_rel")) foundReleases.add("Wind");
+
+            if (id.contains("inyon") || id.contains("yin_yang")) foundReleases.add("Yin-Yang");
+            else if (id.contains("inton") || id.contains("yin_rel")) foundReleases.add("Yin");
+            else if (id.contains("yoton") && !id.contains("yooton")) foundReleases.add("Yang");
+
+            // 2. KEKKEI GENKAI
+            if (id.contains("yooton") || id.contains("lava_")) foundKekkei.add("Lava");
+            if (id.contains("nara") || id.contains("shadow")) foundKekkei.add("Shadow");
+            if (id.contains("mokuton") || id.contains("wood_")) foundKekkei.add("Wood");
+            if (id.contains("hyoton") || id.contains("ice_")) foundKekkei.add("Ice");
+            if (id.contains("futton") || id.contains("boil_")) foundKekkei.add("Boil");
+            if (id.contains("shakuton") || id.contains("scorch_")) foundKekkei.add("Scorch");
+            if (id.contains("jinton") && !id.contains("swift")) foundKekkei.add("Dust");
+            if (id.contains("ranton") || id.contains("storm_")) foundKekkei.add("Storm");
+            if (id.contains("bakuton") || id.contains("explosion_")) foundKekkei.add("Explosion");
+            if (id.contains("jidon") || id.contains("magnet_")) foundKekkei.add("Magnet");
+            if (id.contains("shoton") || id.contains("crystal_")) foundKekkei.add("Crystal");
+            if (id.contains("deiton") || id.contains("mud_")) foundKekkei.add("Mud");
+            if (id.contains("kinton") || id.contains("steel_")) foundKekkei.add("Steel");
+            if (id.contains("meiton") || id.contains("dark_")) foundKekkei.add("Dark");
+            if (id.contains("jinton_swift") || id.contains("swift_")) foundKekkei.add("Swift");
+
+            // 3. DOJUTSU
+            if (id.contains("sharingan") || id.contains("mangekyo")) {
+                String owner = extractOwner(id);
+                if (id.contains("eternal") || id.contains("ems")) foundDojutsu.add("EMS" + owner);
+                else foundDojutsu.add("MS" + owner);
+            } else if (id.contains("rinnegan")) {
+                foundDojutsu.add(id.contains("sasuke") ? "Rinne-Sharingan" : "Rinnegan");
+            } else if (id.contains("tenseigan")) {
+                foundDojutsu.add(id.contains("chakra_mode") ? "Tenseigan CM" : "Tenseigan");
+            } else if (id.contains("byakugan")) foundDojutsu.add("Byakugan");
+            else if (id.contains("jougan")) foundDojutsu.add("Jougan");
+            else if (id.contains("ketsuryugan")) foundDojutsu.add("Ketsuryugan");
+
+            // 4. TAIJUTSU & 8 GATES (Solo rilevamento presenza)
+            if (id.contains("gate_") || id.contains("hachimon") || id.contains("eightgates")) {
+                hasEightGates = true;
+            }
+
+            // 5. SIX PATHS & MEDICAL
+            if (id.contains("six_path_senjutsu") || id.contains("rikudo") || id.contains("hagoromo") || id.contains("truth_seeking")) {
+                hasSixPaths = true;
+                data.sixPathsState = "Yes";
+            }
+            if (id.contains("medical") || id.contains("iryo") || id.contains("byakugou") || id.contains("mystical_palm")) {
+                data.medicalState = "Yes";
+            }
+
+            // 6. SENJUTSU
+            if (id.contains("sage") || id.contains("senjutsu") || id.contains("sennin")) {
+                String foundType = scanForType(id, safeTooltip);
+                if (!foundType.equals("None")) baseSage = foundType;
+            }
+
+            // 7. SUMMONS
+            if (id.contains("summon") || id.contains("contract")) {
+                String foundType = scanForType(id, safeTooltip);
+                if (!foundType.equals("None")) data.sumMode = foundType;
+            }
+        }
+
+        // Logica richiesta: Taijutsu mostra 8 Gates se presenti e se NON è in Six Paths
+        if (hasEightGates && !hasSixPaths) {
+            data.taiMode = "8 Gates";
+        } else if (hasEightGates && hasSixPaths) {
+            data.taiMode = "8 Gates"; // Lo scriviamo comunque se presente
+        }
+
+        data.senMode = hasSixPaths ? (baseSage.isEmpty() ? "Six Paths" : "6P " + baseSage) : (baseSage.isEmpty() ? "None" : baseSage);
+        data.relText = foundReleases.isEmpty() ? "None" : String.join(", ", foundReleases);
+        data.kekText = foundKekkei.isEmpty() ? "None" : String.join(", ", foundKekkei);
+        data.dojText = foundDojutsu.isEmpty() ? "None" : String.join(", ", foundDojutsu);
+
+        return data;
+    }
+
+    private static String scanForType(String id, List<String> safeTooltip) {
+        String[] keys = {"toad", "snake", "slug", "katsuyu", "monkey", "enma", "crow", "hashirama", "wood", "rashomon", "dog"};
+        String[] results = {"Toad", "Snake", "Slug", "Slug", "Monkey", "Monkey", "Crow", "Wood", "Wood", "Rashomon", "Dog"};
+        for (int i = 0; i < keys.length; i++) {
+            if (id.contains(keys[i])) return results[i];
+            for (String line : safeTooltip) { if (line.contains(keys[i])) return results[i]; }
+        }
+        return "None";
+    }
+
+    private static String extractOwner(String id) {
+        if (id.contains("itachi")) return " (Ita)";
+        if (id.contains("obito") || id.contains("kamui")) return " (Obi)";
+        if (id.contains("sasuke")) return " (Sas)";
+        if (id.contains("shisui")) return " (Shi)";
+        if (id.contains("madara")) return " (Mad)";
+        return "";
+    }
+}
+
+
+
+=========================================
+FILE: StatEvents.java
+=========================================
+package net.luck.narutoaddon.StatMenu;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+
+public class StatEvents {
+    @SubscribeEvent
+    public void attachCapability(AttachCapabilitiesEvent<Entity> event) {
+        if (event.getObject() instanceof EntityPlayer) {
+            // Questo "incolla" le stats al giocatore quando entra nel mondo
+            event.addCapability(new ResourceLocation("narutoaddon", "ninja_stats"), new NinjaStatsProvider());
+        }
+    }
+}
+
+
+

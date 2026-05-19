@@ -21,17 +21,13 @@ import net.narutomod.item.ItemJutsu;
 import net.narutomod.procedure.ProcedureUtils;
 
 public class ItemShadowRelease extends ItemJutsu.Base {
-
-    // --- REGISTRAZIONE JUTSU CON I TUOI NUOVI VALORI ---
-    // Ordine: Indice, Nome, Rango, Livello Sblocco, Costo Chakra, Callback
-    // Esempio della riga corretta nel codice
     public static final ItemJutsu.JutsuEnum TRAP = new ItemJutsu.JutsuEnum(0, "shadow_trap", 'B', 100, 100d, new NetTrap());
     public static final ItemJutsu.JutsuEnum CLOAK = new ItemJutsu.JutsuEnum(1, "shadow_cloak", 'A', 150, 150d, new NetCloak());
     public static final ItemJutsu.JutsuEnum GATHERING = new ItemJutsu.JutsuEnum(2, "shadow_gathering", 'S', 200, 250d, new NetGathering());
     public static final ItemJutsu.JutsuEnum TENDRILS = new ItemJutsu.JutsuEnum(3, "shadow_tendrils", 'S', 200, 300d, new NetTendrils());
     public ItemShadowRelease() {
         super(ItemJutsu.JutsuEnum.Type.NINJUTSU, TRAP, CLOAK, GATHERING, TENDRILS);
-        this.setTranslationKey("shadow_release");
+        this.setUnlocalizedName("shadow_release");
         this.setRegistryName("shadow_release");
         this.setCreativeTab(LuckTabs.LUCK_TAB);
     }
@@ -138,13 +134,24 @@ public class ItemShadowRelease extends ItemJutsu.Base {
     }
 
     public static void applyHardFreeze(EntityPlayer caster, EntityLivingBase target, int duration) {
+        if (target == null) return; // Sicurezza extra: se non c'è il bersaglio, non facciamo nulla
+
         NBTTagCompound data = target.getEntityData();
         data.setDouble("FreezeX", target.posX);
         data.setDouble("FreezeY", target.posY);
         data.setDouble("FreezeZ", target.posZ);
         data.setLong("ShadowFrozenUntil", target.world.getTotalWorldTime() + duration);
         data.setBoolean("IsShadowStunned", true);
-        data.setString("StunnedByUUID", caster.getUniqueID().toString());
+
+        // FIX ANTI-CRASH: Registriamo l'UUID del caster solo se il caster è effettivamente presente
+        if (caster != null) {
+            data.setString("StunnedByUUID", caster.getUniqueID().toString());
+        } else {
+            // Opzionale: se il caster è null, salviamo una stringa vuota o un ID di default
+            // in modo che il sistema sappia che lo stun non ha un proprietario attivo.
+            data.setString("StunnedByUUID", "SYSTEM_OR_OFFLINE");
+        }
+
         target.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, duration, 127, false, false));
     }
 

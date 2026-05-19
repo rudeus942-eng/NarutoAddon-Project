@@ -29,7 +29,9 @@ public class EntityShadowKunai extends Entity {
     }
 
     public void setOwner(EntityPlayer owner) {
-        this.ownerUUID = owner.getUniqueID();
+        if (owner != null) {
+            this.ownerUUID = owner.getUniqueID();
+        }
     }
 
     @Override
@@ -43,7 +45,7 @@ public class EntityShadowKunai extends Entity {
 
         if (!this.world.isRemote) {
             // 1. SICUREZZA DESPAWN: 10 secondi (200 ticks)
-            if (this.ticksExisted > 200) {
+            if (this.ticksExisted > MAX_LIFETIME) {
                 this.setDead();
                 return;
             }
@@ -62,10 +64,24 @@ public class EntityShadowKunai extends Entity {
                     // Recuperiamo il caster tramite l'UUID salvato nel Kunai
                     EntityPlayer caster = (ownerUUID != null) ? this.world.getPlayerEntityByUUID(ownerUUID) : null;
 
-                    // CHIAMATA RIPRISTINATA: 4 Argomenti (caster, target, durata, isTendrils)
-                    // Usiamo il caster (se trovato) o il target stesso come fallback per evitare null
-                    ItemShadowRelease.applyHardFreeze(caster, target, 140);
-                    // Il Kunai scompare dopo aver attivato la trappola
+                    // FIX ANTI-CRASH: Controlliamo se il caster esiste ed è online
+                    if (caster != null) {
+                        // Se il caster c'è, applichiamo il congelamento normale attribuito a lui
+                        ItemShadowRelease.applyHardFreeze(caster, target, 140);
+                    } else {
+                        // Se il caster è null (es. offline o rilocato), evitiamo il crash!
+                        // Opzione A: Se applyHardFreeze crasha senza caster, simuliamo il congelamento usando il target stesso come finto caster
+                        if (target instanceof EntityPlayer) {
+                            ItemShadowRelease.applyHardFreeze((EntityPlayer) target, target, 140);
+                        } else {
+                            // Se il target è un mob (es. uno Zombie) e applyHardFreeze vuole SOLO un EntityPlayer,
+                            // fermiamo l'esecuzione per evitare il crash, oppure esegui un congelamento vanilla alternativo.
+                            // In questo caso, se non c'è un player a cui assegnare lo Stun, saltiamo la riga distruttiva.
+                            System.out.println("[ShadowKunai] Caster offline, skipping freeze to prevent crash.");
+                        }
+                    }
+
+                    // Il Kunai scompare in ogni caso dopo aver provato ad attivare la trappola
                     this.setDead();
                     break;
                 }
